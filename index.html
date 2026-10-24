@@ -150,8 +150,8 @@ button{font:inherit;color:inherit}
 .t-extra{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.3em .9em;min-height:1em;font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.15;max-width:100%;min-width:0}
 .chip .v{white-space:nowrap}
 .chip{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.15em .35em;max-width:100%}
-.chip b{color:var(--muted);font-weight:700;font-size:.75em;white-space:nowrap}
-.chip.ball{background:var(--amber);color:var(--ink);padding:.04em .45em;border-radius:.3em}
+.chip b{color:var(--muted);font-weight:700;font-size:.75em}
+.chip.ball{background:var(--amber);color:var(--ink);padding:.04em .45em;border-radius:.3em;font-size:.85em}
 .dots{display:inline-flex;align-self:center;gap:.22em}
 .dot{width:.55em;height:.55em;border-radius:50%;background:var(--line);border:2px solid var(--muted)}
 .dot.on{background:var(--amber);border-color:var(--amber)}
@@ -190,7 +190,7 @@ button{font:inherit;color:inherit}
 .b-status.warn{color:var(--live);font-weight:700}
 
 @media (orientation:portrait){
-  .board{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto 1fr}
+  .board{grid-template-columns:minmax(0,1fr);grid-template-rows:max-content max-content 1fr}
   #team0{order:1} #team1{order:2} .mid{order:3}
   /* Le nom prend toute la largeur ; le pointage et les stats partagent la ligne du dessous. */
   .team{
@@ -234,7 +234,7 @@ button{font:inherit;color:inherit}
 .r-table-wrap{align-self:center;max-width:100%;overflow-x:auto}
 .r-table{border-collapse:collapse;font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.2;font-variant-numeric:tabular-nums}
 .r-table th,.r-table td{padding:.14em .5em;text-align:center;white-space:nowrap}
-.r-table thead th{font-size:.8em;color:var(--muted)}
+.r-table thead th{font-size:.8em;color:var(--muted);white-space:normal;max-width:4.6em;line-height:1.1;vertical-align:bottom}
 .r-table tbody th{text-align:left;text-transform:uppercase}
 .r-table tbody tr+tr{border-top:2px solid var(--line)}
 .r-table .sep{border-left:2px solid var(--line)}
@@ -443,7 +443,7 @@ const LEAGUES = [
 const LG = Object.fromEntries(LEAGUES.map(l => [l.key, l]));
 /* Version de la page. À chaque publication, mettre la même valeur dans version.txt :
    les tablettes déjà ouvertes la verront en moins de 10 minutes et se rechargeront d'elles-mêmes. */
-const APP_VERSION = '2026-10-24.5';
+const APP_VERSION = '2026-10-24.6';
 const LIVE_MS = 12000;    // rafraîchissement pendant un match
 const IDLE_MS = 60000;    // avant / après un match
 const PICKER_MS = 30000;  // liste des matchs
@@ -602,13 +602,20 @@ function seriesFr(s) {
   if ((r = s.match(/^(\S+) (?:wins?|won) series (\d+)-(\d+)/i))) return `${r[1]} remporte la série ${r[2]}-${r[3]}`;
   return '';
 }
-function ballSpot(t) {
+function ballSpot(t, m) {
   if (!t) return '';
   const r = t.match(/^([A-Z]{2,4})\s+(\d{1,2})$/);
-  if (r) return +r[2] === 50 ? 'Ballon au centre (50)' : `Ballon sur la ${r[2]} · côté ${r[1]}`;
-  if (/^\d{1,2}$/.test(t)) return `Ballon sur la ${t}`;
+  if (r) {
+    if (+r[2] === 50) return 'Ballon au centre du terrain';
+    const team = m && m.teams.find(x => x.abbr === r[1]);
+    return `Ballon sur la ligne de ${r[2]} des ${team ? team.name : r[1]}`;
+  }
+  if (/^\d{1,2}$/.test(t)) return `Ballon sur la ligne de ${t}`;
   return '';
 }
+
+/* Pluriel à la française : 0 et 1 au singulier. */
+const pl = (n, one, many) => (Math.abs(n) > 1 ? many : one);
 
 /* ---------- Centre du tableau ---------- */
 function midParts(m) {
@@ -660,8 +667,11 @@ function baseballSituation(m) {
       h('b', { text: 'Balles' }), h('span', { text: n(s.balls) }),
       h('b', { text: 'Prises' }), h('span', { text: n(s.strikes) }),
       h('b', { text: 'Retraits' }), h('span', { text: n(s.outs) })));
-  const batter = s.batter && s.batter.athlete && (s.batter.athlete.shortName || s.batter.athlete.displayName);
-  return batter ? h('div', { class: 'm-sub-inner' }, wrap, h('div', { class: 'soft', text: 'Au bâton : ' + batter })) : wrap;
+  const on = [s.onFirst && '1er', s.onSecond && '2e', s.onThird && '3e'].filter(Boolean);
+  const runners = !on.length ? 'Aucun coureur sur les buts'
+    : on.length === 3 ? 'Buts remplis'
+    : (on.length === 1 ? 'Coureur au ' : 'Coureurs au ') + on.join(' et au ') + ' but';
+  return h('div', { class: 'm-sub-inner' }, wrap, h('div', { class: 'soft', text: runners }));
 }
 
 function diamond(b1, b2, b3) {
@@ -690,51 +700,64 @@ function footballSubs(m) {
   const out = [];
   if (s.down > 0) {
     const goal = /goal/i.test(s.shortDownDistanceText || s.downDistanceText || '');
+    const d = +s.distance;
+    const yards = Number.isFinite(d) && d > 0 ? `${d} ${pl(d, 'verge', 'verges')}` : '';
     out.push(h('div', { class: 'down' },
-      `${ordM(s.down)} essai et ${goal ? 'but' : s.distance}`,
+      `${ordM(s.down)} essai` + (yards ? (goal ? `, ${yards} du but` : `, ${yards} à faire`) : (goal ? ' près du but' : '')),
       s.isRedZone ? h('span', { class: 'rz', text: 'Zone rouge' }) : null));
   }
-  const spot = ballSpot(s.possessionText);
+  const spot = ballSpot(s.possessionText, m);
   if (spot) out.push(h('div', { class: 'soft', text: spot }));
   return out;
 }
 
 /* ---------- Sous chaque pointage ---------- */
-function chip(label, val) { return h('span', { class: 'chip' }, h('b', { text: label }), h('span', { class: 'v', text: String(val) })); }
+/* Une stat = une petite phrase : la partie importante en gros (« 14 paniers »), la suite plus petite (« en 31 tirs »). */
+function stat(main, rest) {
+  return h('span', { class: 'chip' }, h('span', { class: 'v', text: String(main) }), rest ? h('b', { text: rest }) : null);
+}
 
-/* Tirs au panier (basketball) : réussis sur tentés. Avant le match, ESPN met des moyennes de saison
+/* Paniers (basketball) : réussis et tentés. Avant le match, ESPN met des moyennes de saison
    dans ces champs ; on ne les affiche que si les points du flux collent au pointage du match. */
-function fieldGoals(m, i) {
+function fgStats(m, i) {
   const t = m.teams[i], n = k => parseInt(t.stats[k], 10);
   if (t.score == null || n('points') !== t.score) return null;
   const made = n('fieldGoalsMade'), att = n('fieldGoalsAttempted');
   if (!Number.isFinite(made) || !Number.isFinite(att)) return null;
-  return `${made} sur ${att}`;
+  return { made, att };
 }
-function dots(n, max) {
-  const w = h('span', { class: 'dots', 'aria-label': n + ' sur ' + max });
-  for (let k = 0; k < max; k++) w.append(h('span', { class: 'dot' + (k < n ? ' on' : '') }));
-  return w;
+
+/* Fiche avant le match : « 4 victoires, 2 défaites ». */
+function recordStat(m, t) {
+  const parts = String(t.record || '').split('-').map(x => parseInt(x, 10));
+  if (parts.length < 2 || parts.some(x => !Number.isFinite(x))) return null;
+  const [w, l, x] = parts, sp = m.lg.sport;
+  if (sp === 'soccer') return null;   // ordre des chiffres incertain au soccer
+  let rest = `${l} ${pl(l, 'défaite', 'défaites')}`;
+  if (parts.length === 3 && sp === 'hockey') rest += `, ${x} en prol.`;
+  else if (parts.length === 3 && sp === 'football') rest += `, ${x} ${pl(x, 'nulle', 'nulles')}`;
+  return stat(`${w} ${pl(w, 'victoire', 'victoires')}`, rest);
 }
 function teamExtras(m, i) {
   const t = m.teams[i], sp = m.lg.sport, out = [];
-  if (m.state === 'pre') { if (t.record) out.push(chip('Fiche', t.record)); return out; }
+  if (m.state === 'pre') { const r = recordStat(m, t); if (r) out.push(r); return out; }
   if (sp === 'hockey') {
     const s = shotsFor(m, i);
-    if (s != null) out.push(chip('Lancers', s));
+    if (s != null) out.push(stat(s, `${pl(s, 'lancer', 'lancers')} au but`));
   } else if (sp === 'baseball') {
-    if (t.hits != null) out.push(chip('Coups sûrs', t.hits));
-    if (t.errors != null) out.push(chip('Erreurs', t.errors));
+    const hi = parseInt(t.hits, 10), er = parseInt(t.errors, 10);
+    if (Number.isFinite(hi)) out.push(stat(hi, pl(hi, 'coup sûr', 'coups sûrs')));
+    if (Number.isFinite(er)) out.push(stat(er, pl(er, 'erreur', 'erreurs')));
   } else if (sp === 'football' && m.state === 'in' && m.sit) {
-    if (hasBall(m, t)) out.push(h('span', { class: 'chip ball', text: 'Ballon' }));
-    const to = t.home ? m.sit.homeTimeouts : m.sit.awayTimeouts;
-    if (to != null) out.push(h('span', { class: 'chip' }, h('b', { text: 'Temps morts' }), dots(+to, 3)));
+    if (hasBall(m, t)) out.push(h('span', { class: 'chip ball', text: 'A le ballon' }));
+    const to = parseInt(t.home ? m.sit.homeTimeouts : m.sit.awayTimeouts, 10);
+    if (Number.isFinite(to)) out.push(stat(to, `${pl(to, 'temps mort restant', 'temps morts restants')}`));
   } else if (sp === 'basketball') {
-    const fg = fieldGoals(m, i);
-    if (fg) out.push(chip('Tirs', fg));
+    const g = fgStats(m, i);
+    if (g) out.push(stat(`${g.made} ${pl(g.made, 'panier', 'paniers')}`, `en ${g.att} ${pl(g.att, 'tir', 'tirs')}`));
   } else if (sp === 'soccer') {
-    if (t.stats.totalShots != null) out.push(chip('Tirs', t.stats.totalShots));
-    if (t.stats.shotsOnTarget != null) out.push(chip('Sur le but', t.stats.shotsOnTarget));
+    const ts = parseInt(t.stats.totalShots, 10), on = parseInt(t.stats.shotsOnTarget, 10);
+    if (Number.isFinite(ts)) out.push(stat(`${ts} ${pl(ts, 'tir', 'tirs')}`, Number.isFinite(on) ? `dont ${on} sur le but` : ''));
   }
   return out;
 }
@@ -835,8 +858,9 @@ function renderRecap(m) {
   const maxP = Math.max(REG[sp] || 0, ...m.teams.map(t => Math.max(0, ...(t.lines || []).map(l => l.p))));
   const ps = [];
   for (let p = 1; p <= maxP; p++) ps.push(p);
-  const extra = sp === 'hockey' ? [['Lancers', i => shotsFor(m, i)]]
-    : sp === 'basketball' ? [['Tirs', i => fieldGoals(m, i)]]
+  const fg = i => fgStats(m, i) || {};
+  const extra = sp === 'hockey' ? [['Lancers au but', i => shotsFor(m, i)]]
+    : sp === 'basketball' ? [['Paniers réussis', i => fg(i).made], ['Tirs tentés', i => fg(i).att]]
     : sp === 'baseball' ? [['Coups sûrs', i => m.teams[i].hits], ['Erreurs', i => m.teams[i].errors]] : [];
   const totLabel = sp === 'baseball' ? 'Points' : 'Total';
   const teamHead = t => h('span', { class: 'r-team', style: '--tc:' + teamColor(t) }, h('i'),
@@ -855,7 +879,7 @@ function renderRecap(m) {
     vrows.push(h('tr', { class: 'tot-row' }, h('th', { scope: 'row', text: totLabel }),
       ...m.teams.map(t => h('td', { text: t.score == null ? '–' : String(t.score) }))));
     extra.forEach(([lab, f], k) => vrows.push(h('tr', { class: k === 0 ? 'ext-first' : null }, h('th', { scope: 'row', text: lab }),
-      ...m.teams.map((t, i) => { const v = f(i); return h('td', { text: v == null ? '–' : String(v).replace(' sur ', '/') }); }))));
+      ...m.teams.map((t, i) => { const v = f(i); return h('td', { text: v == null ? '–' : String(v) }); }))));
     tbl.replaceChildren(h('thead', null, vhead), h('tbody', null, ...vrows));
   }
   const head = h('tr', null, h('th', { scope: 'col', 'aria-label': 'Équipe' }),
