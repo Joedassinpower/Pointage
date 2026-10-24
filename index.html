@@ -597,6 +597,11 @@ function midParts(m) {
   if (/END_PERIOD/.test(ty) || (sp !== 'soccer' && /^End/i.test(m.short))) {
     return { label: endOf(m), big: sp === 'hockey' ? 'ENTRACTE' : 'PAUSE', word: true };
   }
+  if (sp === 'soccer') {
+    // ESPN écrit le temps ajouté « 45'+2' » : on l'affiche « 45 + 2 min » sous « Temps ajouté ».
+    const r = String(m.clock || '').match(/^(\d+)'?\s*\+\s*(\d+)'?$/);
+    if (r) return { label: 'Temps ajouté', big: `${r[1]} + ${r[2]} min`, word: true, subs: [periodName(m)] };
+  }
   const subs = sp === 'football' ? footballSubs(m) : [];
   return { label: periodName(m), big: m.clock, word: (m.clock || '').length > 5, subs };
 }
@@ -697,7 +702,7 @@ function teamExtras(m, i) {
     if (fg) out.push(chip('Tirs', fg));
   } else if (sp === 'soccer') {
     if (t.stats.totalShots != null) out.push(chip('Tirs', t.stats.totalShots));
-    if (t.stats.shotsOnTarget != null) out.push(chip('Cadrés', t.stats.shotsOnTarget));
+    if (t.stats.shotsOnTarget != null) out.push(chip('Sur le but', t.stats.shotsOnTarget));
   }
   return out;
 }
