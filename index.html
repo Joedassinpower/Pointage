@@ -36,6 +36,23 @@
   --body:"Atkinson Hyperlegible",Verdana,Tahoma,"Segoe UI",Arial,sans-serif;
   --scale:1;
   color-scheme:dark;
+  /* Échelle de texte commune : tous les sports, le tableau et le résumé utilisent les mêmes tailles. */
+  --fs-score:min(40vh,20vw);                                   /* pointages */
+  --fs-score3:min(30vh,12vw);                                  /* pointages à 3 chiffres (basketball) */
+  --fs-clock:min(19vh,9.4vw);                                  /* temps restant */
+  --fs-word:min(10vh,4.6vw);                                   /* mot à la place du temps (heure du match, RETARDÉ) */
+  --fs-name:calc(var(--scale)*max(26px,min(7.5vh,4.4vw)));     /* noms d'équipe */
+  --fs-stat:calc(var(--scale)*max(24px,min(6.4vh,3.8vw)));     /* période, stats, résumé */
+}
+@media (orientation:portrait){
+  :root{
+    --fs-score:min(16vh,28vw);
+    --fs-score3:min(13vh,20vw);
+    --fs-clock:min(13vh,23vw);
+    --fs-word:min(8vh,11vw);
+    --fs-name:calc(var(--scale)*max(26px,min(5vh,8.5vw)));
+    --fs-stat:calc(var(--scale)*max(24px,min(5.2vh,8.6vw)));
+  }
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -126,11 +143,11 @@ button{font:inherit;color:inherit}
 .t-head{display:flex;flex-direction:column;align-items:center;gap:1.2vmin;min-width:0;max-width:100%}
 .logo{flex:none;width:calc(var(--scale)*min(11vh,7vw));height:calc(var(--scale)*min(11vh,7vw));border-radius:50%;background:var(--disc);display:grid;place-items:center;overflow:hidden}
 .logo img{width:78%;height:78%;object-fit:contain}
-.t-name{font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(26px,min(7.5vh,4.4vw)));line-height:1.05;text-transform:uppercase;text-align:center;text-wrap:balance;max-width:100%;min-width:0}
-.t-score{font-family:var(--display);font-weight:700;font-size:min(40vh,20vw);line-height:.85;font-variant-numeric:tabular-nums}
-.board[data-digits="3"] .t-score{font-size:min(30vh,12vw)}
+.t-name{font-family:var(--display);font-weight:700;font-size:var(--fs-name);line-height:1.05;text-transform:uppercase;text-align:center;text-wrap:balance;max-width:100%;min-width:0}
+.t-score{font-family:var(--display);font-weight:700;font-size:var(--fs-score);line-height:.85;font-variant-numeric:tabular-nums}
+.board[data-digits="3"] .t-score{font-size:var(--fs-score3)}
 .board[data-state="pre"] .t-score{color:var(--line)}
-.t-extra{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.3em .9em;min-height:1em;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(24px,min(7vh,4.2vw)));line-height:1.15;max-width:100%;min-width:0}
+.t-extra{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.3em .9em;min-height:1em;font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.15;max-width:100%;min-width:0}
 .chip .v{white-space:nowrap}
 .chip{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.15em .35em;max-width:100%}
 .chip b{color:var(--muted);font-weight:700;font-size:.75em;white-space:nowrap}
@@ -140,17 +157,17 @@ button{font:inherit;color:inherit}
 .dot.on{background:var(--amber);border-color:var(--amber)}
 .t-burst{
   position:absolute;left:0;right:0;bottom:0;background:var(--amber);color:var(--ink);text-align:center;padding:.12em 0;
-  font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(28px,min(8vh,4.6vw)));
+  font-family:var(--display);font-weight:700;font-size:var(--fs-name);
 }
 .team.flash{animation:flash 1.2s ease-in-out 5}
 @keyframes flash{0%,100%{background:var(--panel)}50%{background:var(--panel-hi);border-color:var(--amber)}}
 
 .mid{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,2vmin,22px);text-align:center}
-.m-label{font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(26px,min(7vh,3.8vw)));line-height:1.1;text-wrap:balance}
+.m-label{font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.1;text-wrap:balance}
 .m-label:empty,.m-sub:empty{display:none}
-.m-big{font-family:var(--display);font-weight:700;font-size:min(19vh,9.4vw);line-height:.95;color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}
-.m-big.word{font-size:min(10vh,4.6vw)}
-.m-sub{display:flex;flex-direction:column;align-items:center;gap:.45em;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(22px,min(5.6vh,3.2vw)));line-height:1.2}
+.m-big{font-family:var(--display);font-weight:700;font-size:var(--fs-clock);line-height:.95;color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap;max-width:100%}
+.m-big.word{font-size:var(--fs-word)}
+.m-sub{display:flex;flex-direction:column;align-items:center;gap:.45em;font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.2}
 .m-sub .down{font-size:1.15em}
 .rz{display:inline-block;margin-left:.45em;vertical-align:.1em;background:var(--live);color:var(--on-live);font-size:.62em;padding:.08em .45em;border-radius:.3em}
 .bb{display:flex;align-items:center;gap:.9em}
@@ -181,18 +198,18 @@ button{font:inherit;color:inherit}
     justify-items:start;column-gap:clamp(10px,3vw,24px);row-gap:clamp(2px,.8vh,10px);
     padding:clamp(20px,2.8vh,30px) clamp(14px,3.4vw,30px) clamp(10px,1.6vh,20px);
   }
+  .board{overflow-y:auto}
+  .team{min-height:auto}
+  .count{row-gap:0}
+  .count span{font-size:1em}
+  .bb{gap:.6em}
+  .m-sub{gap:.3em}
   .t-head{grid-area:head;flex-direction:row;align-self:center;gap:clamp(10px,2.4vw,18px)}
   .t-extra:empty{display:none}
   .logo{width:calc(var(--scale)*min(7vh,12vw));height:calc(var(--scale)*min(7vh,12vw))}
-  .t-name{font-size:calc(var(--scale)*max(26px,min(5vh,8.5vw)));text-align:left}
-  .t-score{grid-area:score;font-size:min(16vh,28vw);align-self:center}
-  .board[data-digits="3"] .t-score{font-size:min(13vh,20vw)}
-  .t-extra{grid-area:extra;justify-content:flex-start;align-self:center;font-size:calc(var(--scale)*max(24px,min(5.6vh,9.5vw)))}
-  .t-burst{font-size:calc(var(--scale)*max(26px,min(5vh,8vw)))}
-  .m-label{font-size:calc(var(--scale)*max(26px,min(4.6vh,7.4vw)))}
-  .m-big{font-size:min(13vh,23vw)}
-  .m-big.word{font-size:min(8vh,11vw)}
-  .m-sub{font-size:calc(var(--scale)*max(22px,min(4.6vh,7.6vw)))}
+  .t-name{text-align:left}
+  .t-score{grid-area:score;align-self:center}
+  .t-extra{grid-area:extra;justify-content:flex-start;align-self:center}
   .diamond{width:calc(var(--scale)*min(11vh,20vw))}
 }
 
@@ -204,22 +221,37 @@ button{font:inherit;color:inherit}
 }
 .recap p{margin:0}
 .recap>*{flex-shrink:0}
+.recap::before,.recap::after{content:"";flex:1 1 0}
+.recap.roomy .r-score{font-size:calc(var(--fs-name)*1.2)}
+.recap.roomy .r-table{font-size:calc(var(--fs-stat)*1.35)}
+.r-table.many th,.r-table.many td{padding:.14em .3em}
+.r-table.many .nm-full{display:none}
+.r-table.many .nm-abbr{display:inline}
 .r-head{display:flex;flex-direction:column;align-items:center;gap:.3em;text-align:center}
-.r-label{font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(26px,min(6vh,3.6vw)));line-height:1.1;color:var(--amber)}
-.r-score{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:.05em .45em;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(34px,min(10vh,5.8vw)));line-height:1.05;text-transform:uppercase}
-.r-score .n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.r-label{font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.1;color:var(--amber)}
+.r-score{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:.05em .45em;font-family:var(--display);font-weight:700;font-size:var(--fs-name);line-height:1.05;text-transform:uppercase}
+.r-score .n{font-size:1.6em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .r-table-wrap{align-self:center;max-width:100%;overflow-x:auto}
-.r-table{border-collapse:collapse;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(24px,min(6vh,3.6vw)));line-height:1.2;font-variant-numeric:tabular-nums}
+.r-table{border-collapse:collapse;font-family:var(--display);font-weight:700;font-size:var(--fs-stat);line-height:1.2;font-variant-numeric:tabular-nums}
 .r-table th,.r-table td{padding:.14em .5em;text-align:center;white-space:nowrap}
 .r-table thead th{font-size:.8em;color:var(--muted)}
 .r-table tbody th{text-align:left;text-transform:uppercase}
 .r-table tbody tr+tr{border-top:2px solid var(--line)}
 .r-table .sep{border-left:2px solid var(--line)}
 .r-table .tot{color:var(--amber)}
+.r-table.vert{min-width:min(100%,560px)}
+.r-table.vert thead th{font-size:.9em;color:var(--fg)}
+.r-table.vert tbody th{text-align:left;text-transform:none;color:var(--muted);font-size:.85em;padding-right:.8em}
+.r-table.vert td{min-width:2.2em}
+.r-table.vert tbody th{white-space:normal}
+.r-table.vert tbody tr+tr{border-top:0}
+.r-table.vert tbody tr.tot-row,.r-table.vert tbody tr.ext-first{border-top:2px solid var(--line)}
+.r-table.vert tr.tot-row th{color:var(--fg)}
+.r-table.vert tr.tot-row td{color:var(--amber);font-size:1.35em}
 .r-team{display:inline-flex;align-items:center;gap:.35em}
 .r-team i{flex:none;width:.3em;height:.95em;border-radius:.1em;background:var(--tc,var(--line))}
 .nm-abbr{display:none}
-.r-goals{align-self:center;width:100%;max-width:1100px;display:flex;flex-direction:column;gap:.4em;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(24px,min(5.6vh,3.4vw)));line-height:1.15}
+.r-goals{align-self:center;width:100%;max-width:1100px;display:flex;flex-direction:column;gap:.4em;font-family:var(--display);font-weight:700;font-size:calc(var(--fs-stat)*.85);line-height:1.15}
 .r-sub{font-size:.8em;color:var(--muted)}
 .r-goals ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55em}
 .r-goals li{display:grid;grid-template-columns:3em auto minmax(0,1fr);grid-template-areas:"when abbr who" ". . ast";align-items:baseline;column-gap:.5em;row-gap:.05em}
@@ -231,7 +263,7 @@ button{font:inherit;color:inherit}
 /* Écran large couché : les buts sur deux colonnes, pour que tout tienne sans faire défiler. */
 @media (min-width:900px) and (orientation:landscape){
   .recap{gap:clamp(10px,2vh,22px)}
-  .r-goals{font-size:calc(var(--scale)*max(24px,min(5vh,3vw)))}
+  .r-goals{font-size:calc(var(--fs-stat)*.8)}
   .r-goals ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.6em;row-gap:.6em}
   .r-goals li{grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:"when abbr who" "ast ast ast"}
 }
@@ -241,11 +273,8 @@ button{font:inherit;color:inherit}
   .r-goals li{grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:"when abbr ." "who who who" "ast ast ast"}
 }
 @media (orientation:portrait){
-  .r-label{font-size:calc(var(--scale)*max(24px,min(4.4vh,7.4vw)))}
-  .r-score{font-size:calc(var(--scale)*max(30px,min(7vh,9.5vw)))}
-  .r-table{font-size:calc(var(--scale)*max(22px,min(4.4vh,6.6vw)))}
-  .r-table th,.r-table td{padding:.14em .3em}
-  .r-goals{font-size:calc(var(--scale)*max(22px,min(4.4vh,7vw)))}
+  .r-table th,.r-table td{padding:.16em .4em}
+  .r-goals{font-size:calc(var(--fs-stat)*.9)}
 }
 
 /* ---------- Carte « But ! » : marqueur et passes en plein écran ---------- */
@@ -412,6 +441,9 @@ const LEAGUES = [
   { key: 'mls', path: 'soccer/usa.1',   sport: 'soccer',     name: 'Soccer',     short: 'MLS' },
 ];
 const LG = Object.fromEntries(LEAGUES.map(l => [l.key, l]));
+/* Version de la page. À chaque publication, mettre la même valeur dans version.txt :
+   les tablettes déjà ouvertes la verront en moins de 10 minutes et se rechargeront d'elles-mêmes. */
+const APP_VERSION = '2026-10-24.5';
 const LIVE_MS = 12000;    // rafraîchissement pendant un match
 const IDLE_MS = 60000;    // avant / après un match
 const PICKER_MS = 30000;  // liste des matchs
@@ -598,9 +630,9 @@ function midParts(m) {
     return { label: endOf(m), big: sp === 'hockey' ? 'ENTRACTE' : 'PAUSE', word: true };
   }
   if (sp === 'soccer') {
-    // ESPN écrit le temps ajouté « 45'+2' » : on l'affiche « 45 + 2 min » sous « Temps ajouté ».
+    // ESPN écrit le temps ajouté « 45'+2' » : même taille que le temps normal, avec « Temps ajouté » dessous.
     const r = String(m.clock || '').match(/^(\d+)'?\s*\+\s*(\d+)'?$/);
-    if (r) return { label: 'Temps ajouté', big: `${r[1]} + ${r[2]} min`, word: true, subs: [periodName(m)] };
+    if (r) return { label: periodName(m), big: `${r[1]}+${r[2]}'`, subs: ['Temps ajouté'] };
   }
   const subs = sp === 'football' ? footballSubs(m) : [];
   return { label: periodName(m), big: m.clock, word: (m.clock || '').length > 5, subs };
@@ -752,6 +784,7 @@ function renderBoard(m) {
   const big = $('#mBig');
   big.textContent = mp.big || '';
   big.classList.toggle('word', !!mp.word);
+  fitText(big);
   const subs = (mp.subs || []).filter(Boolean);
   if (m.lg.sport === 'hockey' && m.state === 'in' && S.lastGoal && S.lastGoal.id === m.id) {
     subs.push(h('div', { class: 'soft' }, h('div', { text: 'Dernier but' }), h('div', { text: S.lastGoal.g.scorer })));
@@ -804,21 +837,39 @@ function renderRecap(m) {
   for (let p = 1; p <= maxP; p++) ps.push(p);
   const extra = sp === 'hockey' ? [['Lancers', i => shotsFor(m, i)]]
     : sp === 'basketball' ? [['Tirs', i => fieldGoals(m, i)]]
-    : sp === 'baseball' ? [['CS', i => m.teams[i].hits], ['E', i => m.teams[i].errors]] : [];
+    : sp === 'baseball' ? [['Coups sûrs', i => m.teams[i].hits], ['Erreurs', i => m.teams[i].errors]] : [];
+  const totLabel = sp === 'baseball' ? 'Points' : 'Total';
+  const teamHead = t => h('span', { class: 'r-team', style: '--tc:' + teamColor(t) }, h('i'),
+    h('span', { class: 'nm-full', text: t.name }), h('span', { class: 'nm-abbr', text: t.abbr || t.name }));
+  const cell = (t, p) => { const l = (t.lines || []).find(x => x.p === p); return l && l.v !== '' ? l.v : '–'; };
+  const tbl = $('#rTable');
+  // En portrait (téléphone, tablette debout) : périodes en lignes, équipes en colonnes,
+  // pour garder des chiffres aussi gros que sur le tableau.
+  const vert = !!(window.matchMedia && window.matchMedia('(orientation: portrait)').matches);
+  tbl.classList.toggle('vert', vert);
+  tbl.classList.toggle('many', !vert && ps.length + 1 + extra.length > 8);
+  $('#recap').classList.toggle('roomy', !vert && (sp === 'football' || sp === 'soccer'));
+  if (vert) {
+    const vhead = h('tr', null, h('th', { scope: 'col', 'aria-label': 'Période' }), ...m.teams.map(t => h('th', { scope: 'col' }, teamHead(t))));
+    const vrows = ps.map(p => h('tr', null, h('th', { scope: 'row', text: perShort(m, p) }), ...m.teams.map(t => h('td', { text: cell(t, p) }))));
+    vrows.push(h('tr', { class: 'tot-row' }, h('th', { scope: 'row', text: totLabel }),
+      ...m.teams.map(t => h('td', { text: t.score == null ? '–' : String(t.score) }))));
+    extra.forEach(([lab, f], k) => vrows.push(h('tr', { class: k === 0 ? 'ext-first' : null }, h('th', { scope: 'row', text: lab }),
+      ...m.teams.map((t, i) => { const v = f(i); return h('td', { text: v == null ? '–' : String(v).replace(' sur ', '/') }); }))));
+    tbl.replaceChildren(h('thead', null, vhead), h('tbody', null, ...vrows));
+  }
   const head = h('tr', null, h('th', { scope: 'col', 'aria-label': 'Équipe' }),
     ...ps.map(p => h('th', { scope: 'col', text: perShort(m, p) })),
-    h('th', { scope: 'col', class: 'sep', text: sp === 'baseball' ? 'P' : 'Total' }),
+    h('th', { scope: 'col', class: 'sep', text: totLabel }),
     ...extra.map(([lab]) => h('th', { scope: 'col', text: lab })));
   const rows = m.teams.map((t, i) => {
-    const tr = h('tr', null, h('th', { scope: 'row' },
-      h('span', { class: 'r-team', style: '--tc:' + teamColor(t) }, h('i'),
-        h('span', { class: 'nm-full', text: t.name }), h('span', { class: 'nm-abbr', text: t.abbr || t.name }))));
-    ps.forEach(p => { const l = (t.lines || []).find(x => x.p === p); tr.append(h('td', { text: l && l.v !== '' ? l.v : '–' })); });
+    const tr = h('tr', null, h('th', { scope: 'row' }, teamHead(t)));
+    ps.forEach(p => tr.append(h('td', { text: cell(t, p) })));
     tr.append(h('td', { class: 'sep tot', text: t.score == null ? '–' : String(t.score) }));
     extra.forEach(([, f]) => { const v = f(i); tr.append(h('td', { text: v == null ? '–' : String(v) })); });
     return tr;
   });
-  $('#rTable').replaceChildren(h('thead', null, head), h('tbody', null, ...rows));
+  if (!vert) tbl.replaceChildren(h('thead', null, head), h('tbody', null, ...rows));
 
   // Les buts (hockey)
   const box = $('#rGoals');
@@ -1351,8 +1402,27 @@ function setScale(v) {
 }
 
 /* ---------- Démarrage ---------- */
+/* ---------- Mise à jour automatique ----------
+   La page reste souvent ouverte des jours sur la tablette : elle vérifie elle-même s'il y a une
+   nouvelle version et se recharge (sur le même match), sauf pendant la carte « But ! ». */
+async function checkVersion() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    const r = await fetch('version.txt?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const v = (await r.text()).trim();
+    if (!v || v === APP_VERSION || v.length > 40 || !$('#goalCard').hidden || !$('#favSheet').hidden) return;
+    let tried = null;
+    try { tried = sessionStorage.getItem('pointage.tried'); } catch (e) { /* stockage indisponible */ }
+    if (tried === v) return;   // déjà essayé : on évite de recharger en boucle
+    try { sessionStorage.setItem('pointage.tried', v); } catch (e) { /* stockage indisponible */ }
+    location.replace(location.pathname + '?v=' + encodeURIComponent(v));
+  } catch (e) { /* hors ligne : on réessaiera */ }
+}
+
 async function init() {
   setScale(store.get('scale', 1));
+  setInterval(checkVersion, 10 * 60 * 1000);
   buildTabs();
   renderFavNote();
   const el = document.documentElement;
@@ -1383,7 +1453,7 @@ async function init() {
   });
   ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { if (S.view === 'board') { wake(); keepAwake(); } }, { passive: true }));
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') { keepAwake(); clearTimeout(S.timer); tick(); }
+    if (document.visibilityState === 'visible') { keepAwake(); clearTimeout(S.timer); tick(); checkVersion(); }
   });
 
   // 1) match d'une équipe favorite, 2) dernier match ouvert aujourd'hui, 3) liste des matchs
