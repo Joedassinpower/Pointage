@@ -130,7 +130,8 @@ button{font:inherit;color:inherit}
 .t-score{font-family:var(--display);font-weight:700;font-size:min(40vh,20vw);line-height:.85;font-variant-numeric:tabular-nums}
 .board[data-digits="3"] .t-score{font-size:min(30vh,12vw)}
 .board[data-state="pre"] .t-score{color:var(--line)}
-.t-extra{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.3em .9em;min-height:1em;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(24px,min(7vh,4.2vw)));line-height:1.15}
+.t-extra{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.3em .9em;min-height:1em;font-family:var(--display);font-weight:700;font-size:calc(var(--scale)*max(24px,min(7vh,4.2vw)));line-height:1.15;max-width:100%;min-width:0}
+.chip .v{white-space:nowrap}
 .chip{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.15em .35em;max-width:100%}
 .chip b{color:var(--muted);font-weight:700;font-size:.75em;white-space:nowrap}
 .chip.ball{background:var(--amber);color:var(--ink);padding:.04em .45em;border-radius:.3em}
@@ -662,7 +663,17 @@ function footballSubs(m) {
 }
 
 /* ---------- Sous chaque pointage ---------- */
-function chip(label, val) { return h('span', { class: 'chip' }, h('b', { text: label }), String(val)); }
+function chip(label, val) { return h('span', { class: 'chip' }, h('b', { text: label }), h('span', { class: 'v', text: String(val) })); }
+
+/* Tirs au panier (basketball) : réussis sur tentés. Avant le match, ESPN met des moyennes de saison
+   dans ces champs ; on ne les affiche que si les points du flux collent au pointage du match. */
+function fieldGoals(m, i) {
+  const t = m.teams[i], n = k => parseInt(t.stats[k], 10);
+  if (t.score == null || n('points') !== t.score) return null;
+  const made = n('fieldGoalsMade'), att = n('fieldGoalsAttempted');
+  if (!Number.isFinite(made) || !Number.isFinite(att)) return null;
+  return `${made} sur ${att}`;
+}
 function dots(n, max) {
   const w = h('span', { class: 'dots', 'aria-label': n + ' sur ' + max });
   for (let k = 0; k < max; k++) w.append(h('span', { class: 'dot' + (k < n ? ' on' : '') }));
@@ -681,6 +692,9 @@ function teamExtras(m, i) {
     if (hasBall(m, t)) out.push(h('span', { class: 'chip ball', text: 'Ballon' }));
     const to = t.home ? m.sit.homeTimeouts : m.sit.awayTimeouts;
     if (to != null) out.push(h('span', { class: 'chip' }, h('b', { text: 'Temps morts' }), dots(+to, 3)));
+  } else if (sp === 'basketball') {
+    const fg = fieldGoals(m, i);
+    if (fg) out.push(chip('Tirs', fg));
   } else if (sp === 'soccer') {
     if (t.stats.totalShots != null) out.push(chip('Tirs', t.stats.totalShots));
     if (t.stats.shotsOnTarget != null) out.push(chip('Cadrés', t.stats.shotsOnTarget));
@@ -723,7 +737,9 @@ function renderBoard(m) {
     fitText(nm);
     const score = m.state === 'pre' || t.score == null ? '–' : String(t.score);
     el.querySelector('.t-score').textContent = score;
-    el.querySelector('.t-extra').replaceChildren(...teamExtras(m, i));
+    const ex = el.querySelector('.t-extra');
+    ex.replaceChildren(...teamExtras(m, i));
+    fitText(ex);
     el.setAttribute('aria-label', `${t.full || t.name} : ${score}`);
   });
   const mp = midParts(m);
@@ -782,6 +798,7 @@ function renderRecap(m) {
   const ps = [];
   for (let p = 1; p <= maxP; p++) ps.push(p);
   const extra = sp === 'hockey' ? [['Lancers', i => shotsFor(m, i)]]
+    : sp === 'basketball' ? [['Tirs', i => fieldGoals(m, i)]]
     : sp === 'baseball' ? [['CS', i => m.teams[i].hits], ['E', i => m.teams[i].errors]] : [];
   const head = h('tr', null, h('th', { scope: 'col', 'aria-label': 'Équipe' }),
     ...ps.map(p => h('th', { scope: 'col', text: perShort(m, p) })),
